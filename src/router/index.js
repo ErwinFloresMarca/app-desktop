@@ -5,7 +5,7 @@ import VueRouter from 'vue-router'
 // These can be imported from other files
 const Foo = { template: '<div>foo</div>' }
 const Bar = { template: '<div>bar</div>' }
-import Home from './../components/Home';
+import Home from './../views/Home';
 // 2. Define some routes
 // Each route should map to a component. The "component" can
 // either be an actual component constructor created via
