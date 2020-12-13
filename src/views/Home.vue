@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row :gutter="20" type="flex" justify="space-around">
+    <!-- <el-row :gutter="20" type="flex" justify="space-around">
       <el-col :span="10" :offset="0">
         <el-card shadow="hover" :body-style="{ padding: '5px' }">
           <div slot="header">
@@ -28,32 +28,35 @@
         </el-card>
       </el-col>
     </el-row>
-    <el-row :gutter="20" type="flex" justify="space-around">
-      <el-col :span="20" :offset="0">
-        
-        <el-row :gutter="20">
-          <el-col :span="12" :offset="0"></el-col>
-          <el-col :span="12" :offset="0"></el-col>
-        </el-row>
+    <el-row v-if="readx1 && readx2" :gutter="20" type="flex" justify="space-around">
+      <el-col :span="22" :offset="0">
+        <CompareData
+          :arr1="xlsx1.info"
+          :arr2="xlsx2.info"
+        />
       </el-col>
     </el-row>
-    
+     -->
+    <CompararPlanillas />
   </div>
 </template>
 
 <script>
-import UploadExcel from '@/components/uploadExcel';
+import CompararPlanillas from './CompararPlanillas';
+// import UploadExcel from '@/components/uploadExcel';
+// import CompareData from '@/components/compareData';
 export default {
   name: 'Home',
   components: {
-    UploadExcel,
+    // UploadExcel,
+    // CompareData,
+    CompararPlanillas,
   },
   data(){
     return {
       xlsx1: {
         title: "Seleccione Palanilla De Descuento Permanente Ajustado",
         filterColumns: [
-          'ITEM',
           'Nº SOCIO',
           'CEDULA DE IDENTIDAD',
           'APELLIOS PATERNO',
@@ -86,12 +89,15 @@ export default {
       readx2: false,
     };
   },
+  created(){
+  },
   methods: {
     onReadX1(Json){
       this.xlsx1.jsonData = Json;
     },
     onFilterX1(data){
       this.xlsx1.info = data;
+      this.searchSpecialCi(this.xlsx1.info,'CEDULA DE IDENTIDAD'),
       this.readx1 = true;
     },
     onReadX2(Json){
@@ -99,7 +105,14 @@ export default {
     },
     onFilterX2(data){
       this.xlsx2.info = data;
+      this.searchSpecialCi(this.xlsx2.info,'CI');
       this.readx2 = true;
+    },
+    searchSpecialCi(arr,key){
+      arr.forEach(e => {
+        if(e[key].length>7)
+          console.log(e[key])
+      });
     }
   }
 }

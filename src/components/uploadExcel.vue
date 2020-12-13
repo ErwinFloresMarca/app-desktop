@@ -27,16 +27,16 @@ import XLSX from "xlsx";
 export default {
   name: "UploadExcel",
   props: {
-    onReade: {
-      type: Function,
-      default: null,
-    },
     filterColumns: {
       type: Array,
       default: null,
     },
     noNullColumns: {
       type: Array,
+      default: null,
+    },
+    endContentFilter: {
+      type: String,
       default: null,
     },
     onRead: {
@@ -54,6 +54,8 @@ export default {
       masterJson: null,
       dataKeys: null,
       info: null,
+      finalLineIndex: null,
+      excluded: null,
     };
   },
   created() {},
@@ -83,10 +85,40 @@ export default {
       if (newValue) this.getInfo();
     },
     info(newVal){
-      if(newVal) if(this.onFilter) this.onFilter([... newVal]);
-    }
+      if(this.onFilter) 
+        if(newVal){
+          this.onFilter([... newVal],[... this.excluded]);
+        }
+        else 
+          this.onFilter(null,null);
+    },
+    endContentFilter(newVal){
+      if(newVal){
+        if(newVal.length>0)
+          this.searchFinalLineIndex()
+        else
+          this.finalLineIndex = null;
+      }
+      else
+        this.finalLineIndex = null;
+
+      this.getInfo();
+    },
   },
   methods: {
+    searchFinalLineIndex(){
+      if(this.endContentFilter){
+        this.masterJson.forEach((r, index) => {
+          Object.keys(r).map(k => {
+            if(r[k]===this.endContentFilter)
+              this.finalLineIndex = index;
+          });
+        });
+      }
+    },
+    lessThatEnd(i){
+      return (this.finalLineIndex? i<=this.finalLineIndex : true);
+    },
     NoNullColums() {
       if (this.noNullColumns) return this.noNullColumns;
       else return this.filterColumns;
@@ -108,6 +140,7 @@ export default {
       reader.readAsArrayBuffer(f);
     },
     getKeys() {
+      this.searchFinalLineIndex();
       if (this.filterColumns) {
         //searchKeys
         this.dataKeys = this.masterJson
@@ -132,9 +165,10 @@ export default {
       }
     },
     getInfo() {
+      this.excluded = [];
       this.info = this.masterJson
         .map((val, i) => {
-          if (i > this.dataKeys.row) {
+          if (i > this.dataKeys.row && this.lessThatEnd(i)) {
             let data = this.filterRowWithNoNullColumns(val);
             if (data)
               return {
@@ -157,53 +191,17 @@ export default {
         return false;
       });
       if (haveKeys.length === this.NoNullColums().length) return newData;
-      else return false;
-    },
-    formatData(json) {
-      if (this.filterColumns) {
-        //searchKeys
-        let keys = json
-          .map((row, i) => {
-            let keys = Object.keys(row)
-              .map((ck) => {
-                if (this.filterColumns.includes(row[ck]))
-                  return {
-                    fkey: row[ck],
-                    xkey: ck,
-                  };
-                return false;
-              })
-              .filter((d) => d);
-            if (keys.length === this.filterColumns.length)
-              return { row: i, keys };
-            return null;
-          })
-          .filter((d) => {
-            return d;
-          })[0];
-        console.log(keys);
-        let data = json
-          .map((val, i) => {
-            if (i > keys.row) {
-              var Row = { row: i };
-              for (let j = 0; j < keys.keys.length; j++) {
-                if (val[keys.keys[j].xkey] != undefined)
-                  Row[keys.keys[j].fkey] = val[keys.keys[j].xkey];
-                else return false;
-              }
-              return Row;
-            }
-            return false;
-          })
-          .filter((d) => d);
-        console.log(data);
-      } else {
-        console.log("all");
+      else {
+        this.excluded.push(newData);
+        return false;
       }
     },
     onRemoveFile() {
       this.file = null;
       this.masterJson = null;
+      this.info = null;
+      this.onRead(null);
+      this.onFilter(null);
     },
     beforeUpload(file) {
       this.file = file;
@@ -221,6 +219,7 @@ export default {
       this.dataKeys = null;
       this.info = null;
       this.masterJson = null;
+      this.excluded = null;
     },
   },
 };
