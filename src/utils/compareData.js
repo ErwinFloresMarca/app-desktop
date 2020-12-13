@@ -1,10 +1,10 @@
 
 
 const compareCI =(ci1,ci2) => {
-    var fc1 = fragmentCI((ci1+'').toUpperCase().split('-').join(''));
-    var fc2 = fragmentCI((ci2+'').toUpperCase().split('-').join(''));
+    var fc1 = fragmentCI(String(ci1).toUpperCase().split('-').join('').split(' ').join(''));
+    var fc2 = fragmentCI(String(ci2).toUpperCase().split('-').join('').split(' ').join(''));
     if(fc1.ci === fc2.ci)
-        if(fc1.complemento && fc2.complemento)
+        if(fc1.complemento || fc2.complemento)
             if(fc1.complemento === fc2.complemento)
                 return 1;
             else
@@ -25,8 +25,9 @@ const fragmentCI = (strCi) => {
     }
     //check COMPLEMENTO
     var com = null;
-    if((parseInt(strCi)+'').length !== strCi.length){
+    if(String(parseInt(strCi)).length !== strCi.length){
         com = strCi.slice(-2);
+        strCi = strCi.slice(0,-2);
     }
     //CI
     strCi = parseInt(strCi)+'';
@@ -42,10 +43,10 @@ const extDep = ['SC','TJ','OR','LP','CB','BE','PD','PT','CH','PO'];
 //Compare names
 const compareNames=(name1,name2) => {
     var n1formed = name1.map(e => {
-        e.toUpperCase();
+        return e? e.toUpperCase():''; 
     }).join('').split('').join();
     var n2formed = name2.map(e => {
-        e.toUpperCase();
+        return e? e.toUpperCase():'';
     }).join('').split('').join();
     return n1formed === n2formed;
 }

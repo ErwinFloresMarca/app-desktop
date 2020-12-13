@@ -81,12 +81,10 @@ export default {
   },
   methods: {
     onFilterD1(data){
-      this.xlsx1.info = data;      
-      console.log(data);
+      this.xlsx1.info = data;
     },
     onFilterD2(data){
-      this.xlsx2.info = data;      
-      console.log(data);
+      this.xlsx2.info = data;
     },
   },
 };

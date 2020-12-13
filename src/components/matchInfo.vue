@@ -22,7 +22,8 @@
         </el-select>
         <br>
         <br>
-        <el-button type="primary" size="default" @click="matching">Iniciar Agrupacion</el-button>
+        <el-button :disabled="showResults" type="primary" size="default" @click="matching">Iniciar Agrupacion</el-button> <br>
+        <el-button type="danger" size="default" @click="initComponents">Reiniciar</el-button>
       </el-col>
       <el-col :span="7" :offset="0">
         <h3><span>Seleccione Campo de la Lista 2</span></h3>
@@ -39,25 +40,48 @@
     <el-collapse v-if="showResults" :accordion="true">
       <el-collapse-item>
         <span slot="title"><el-badge :value="matchList.length" :hidden="false" type="success">
-          <el-link type="success" :underline="false">Registros Agrupados</el-link>
+          <el-link type="success" :underline="false">Registros Emparejados</el-link>
         </el-badge></span>
-        lista
+        <array-paginate
+          :list="matchList"
+          filterable
+        >
+          <el-row slot-scope="row" :gutter="20" type="flex" justify="space-around">
+            <el-col :span="10" :offset="0">
+              <show-object :object="row.item.d1" :principal-keys="l1CompareKeys" :type="'success'" show-area-info/>
+            </el-col>
+            <el-col :span="10" :offset="0">
+              <show-object :object="row.item.d2" :principal-keys="l2CompareKeys" :type="'success'" show-area-info/>
+            </el-col>
+          </el-row>
+        </array-paginate>
       </el-collapse-item>
       <el-collapse-item v-if="possibleMatchList.length>0">
         <span slot="title">
-          <el-badge :value="possibleMatchList.length" :hidden="false" type="default">
+          <el-badge :value="possibleMatchList.length" :hidden="false" type="primary">
             <el-link type="info" :underline="false">Registros por confirmar</el-link>
           </el-badge>
         </span>
-        Lista por confirmar
+        Lista por Confirmar
+        <possible-match-list 
+          :list="possibleMatchList"
+          @on-confirm="PMLonConfirm"
+          @on-delete="PMLonDelete"
+        />
       </el-collapse-item>
-      <el-collapse-item>
+      <el-collapse-item v-if="list1.length>0||list2.length>0">
         <span slot="title">
-          <el-badge :value="Math.max(list1.length,list2.length)" :max="99" :hidden="false" type="error">
+          <el-badge :value="Math.max(list1.length,list2.length)" :max="99" :hidden="false">
             <el-link type="danger" :underline="false">Registros no Emparejados</el-link>
           </el-badge>
         </span>
-        Lista No emparejados
+        Listas No emparejadas
+        <!-- <NoMatchList /> -->
+        <no-matched-lists
+          :list1="list1"
+          :list2="list2"
+          @on-matched="onMatchNM"
+        />
       </el-collapse-item>
       
     </el-collapse>
@@ -67,8 +91,18 @@
 
 <script>
 import Comp from '@/utils/compareData';
+import ArrayPaginate from './ArrayPaginate';
+import ShowObject from './ShowObject';
+import NoMatchedLists from './NoMatchLists';
+import PossibleMatchList from './PossibleMatchList';
 export default {
   name: 'MatchInfo',
+  components: {
+    ArrayPaginate,
+    ShowObject,
+    NoMatchedLists,
+    PossibleMatchList,
+  },
   props: {
     arr1:{
       type: Array,
@@ -118,6 +152,41 @@ export default {
     this.initComponents();
   },
   methods: {
+    PMLonConfirm(row){
+      this.matchList.push(row.item);
+      this.possibleMatchList = this.possibleMatchList.filter((v,i)=>{
+        return (row.index !== i);
+      });
+    },
+    PMLonDelete(row){
+      this.list1.push(row.item.d1);
+      this.list2.push(row.item.d2);
+      this.possibleMatchList = this.possibleMatchList.filter((v,i)=>{
+        return (row.index !== i);
+      });
+    },
+    compareObjects(o1,o2){
+      if(o1&&o2){
+        const keys1 = Object.keys(o1);
+        const keys2 = Object.keys(o2);
+        if (keys1.length !== keys2.length) {
+          return false;
+        }
+        for (let key of keys1) {
+          if (o1[key] !== o2[key]) {
+            return false;
+          }
+        }
+        return true;
+      }
+      else
+        return false;
+    },
+    onMatchNM(m){
+      this.list1 = this.list1.filter(e => !this.compareObjects(m.d1,e));
+      this.list2 = this.list2.filter(e => !this.compareObjects(m.d2,e));
+      this.matchList.push(m);
+    },
     initComponents(){  
       this.list1 = this.arr1;
       this.list2 = this.arr2;
