@@ -146,6 +146,9 @@ export default {
     },
     arr2(){
       this.initComponents();
+    },
+    matchList(newVal){
+      this.$emit('on-match',newVal);
     }
   },
   created(){

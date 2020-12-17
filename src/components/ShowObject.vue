@@ -3,7 +3,7 @@
     <el-popover
       placement="bottom"
       :disabled="!showPupover"
-      :title="generateTitle"
+      :title="(title? title:generateTitle)"
       trigger="hover">
       <el-alert :type="type" effect="light" show-icon :closable="false">
         <table border="0px">
@@ -14,14 +14,14 @@
         </table>
       </el-alert>
       <el-link slot="reference" :type="(type==='error'? 'danger' : type)" :underline="true" @click="toggleShow">
-        {{ generateTitle }}
+        {{ ( title? title : generateTitle) }}
       </el-link>
     </el-popover>
     <template v-if="showAllContent">
       <el-alert :type="type" effect="light" show-icon :closable="false">
         <table border="0px">
           <template v-for="k in Object.keys(object)">
-            <tr :key="k">
+            <tr :key="k" v-if="!hideKeys.includes(k)">
               <td align="right">
                 <Strong>{{ k }}</Strong>
               </td>
@@ -41,8 +41,16 @@
 
 <script>
 export default {
-  name: '',
+  name: 'ShowObject',
   props: {
+    showAll: {
+      type: Boolean,
+      default: false,
+    },
+    title: {
+      type: String,
+      default: null,
+    },
     object: {
       type: Object,
       default: () => null,
@@ -62,6 +70,10 @@ export default {
     showPupover: {
       type: Boolean,
       default: false,
+    },
+    hideKeys: {
+      type: Array,
+      default: () => [],
     }
   },
   data(){
@@ -86,7 +98,10 @@ export default {
       if(this.principalKeys&&this.object)
         return this.principalKeys;
       else
-        return [Object.keys(this.object)[0]];
+        if(this.showAll)
+          return Object.keys(this.object);
+        else
+          return [Object.keys(this.object)[0]];
     },
     toggleShow(){
       if(this.showAreaInfo){

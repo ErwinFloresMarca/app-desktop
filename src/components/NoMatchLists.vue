@@ -25,6 +25,10 @@
             show-pupover
           />
         </array-paginate>
+        <ExportToExcel
+          file-name="lista socios con descuentos no registrados"
+          :json-list="list1"
+        />
       </el-col>
       <el-col :span="11" :offset="0">
         Lista Documento 2
@@ -50,6 +54,10 @@
             show-pupover
           />
         </array-paginate>
+        <ExportToExcel
+          file-name="lista personal sin descuento"
+          :json-list="list2"
+        />
       </el-col>
     </el-row>
     <h3><span>Registros Seleccionados Para Emparejar Manualmente</span></h3>
@@ -83,6 +91,7 @@
 <script>
 import ArrayPaginate from './ArrayPaginate';
 import ShowObject from './ShowObject';
+import ExportToExcel from './ExportToExcel';
 export default {
   name: 'NoMatchLists',
   props: {
@@ -98,6 +107,7 @@ export default {
   components: {
     ArrayPaginate,
     ShowObject,
+    ExportToExcel,
   },
   data(){
     return {

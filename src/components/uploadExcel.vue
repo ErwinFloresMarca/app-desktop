@@ -15,7 +15,7 @@
         Suelta tu archivo aquí o <em>haz clic para cargar</em>
       </div>
       <div slot="tip" class="el-upload__tip">
-        Archivos xlsx con un tamaño menor que 500kb
+        Archivos xlsx
       </div>
     </el-upload>
   </div>
@@ -23,27 +23,27 @@
 
 <script>
 import XLSX from "xlsx";
-
+import generateHeders from '@/utils/generateXlsxHeaders';
 export default {
   name: "UploadExcel",
   props: {
     filterColumns: {
       type: Array,
-      default: null,
+      default: ()=>[],
     },
     noNullColumns: {
       type: Array,
-      default: null,
+      default: ()=>[],
     },
-    endContentFilter: {
-      type: String,
+    firstRow: {
+      type: Number,
+      default: 1,
+    },
+    endRow: {
+      type: Number,
       default: null,
     },
     onRead: {
-      type: Function,
-      default: null,
-    },
-    onFilter: {
       type: Function,
       default: null,
     }
@@ -52,18 +52,15 @@ export default {
     return {
       file: {},
       masterJson: null,
-      dataKeys: null,
       info: null,
       finalLineIndex: null,
       excluded: null,
     };
   },
-  created() {},
-  computed: {},
   watch: {
     filterColumns(newVal){
       if(newVal)
-        this.getKeys();
+        this.getInfo();
     },
     noNullColumns(newVal){
       if(newVal)
@@ -74,50 +71,10 @@ export default {
         this.excelToJson(newValue);
       } else this.deleteData();
     },
-    masterJson(newValue) {
-      if (newValue) {
-        this.getKeys();
-        if(this.onRead)
-          this.onRead([... newValue]);
-      }
-    },
-    dataKeys(newValue) {
-      if (newValue) this.getInfo();
-    },
-    info(newVal){
-      if(this.onFilter) 
-        if(newVal){
-          this.onFilter([... newVal],[... this.excluded]);
-        }
-        else 
-          this.onFilter(null,null);
-    },
-    endContentFilter(newVal){
-      if(newVal){
-        if(newVal.length>0)
-          this.searchFinalLineIndex()
-        else
-          this.finalLineIndex = null;
-      }
-      else
-        this.finalLineIndex = null;
-
-      this.getInfo();
-    },
   },
   methods: {
-    searchFinalLineIndex(){
-      if(this.endContentFilter){
-        this.masterJson.forEach((r, index) => {
-          Object.keys(r).map(k => {
-            if(r[k]===this.endContentFilter)
-              this.finalLineIndex = index;
-          });
-        });
-      }
-    },
-    lessThatEnd(i){
-      return (this.finalLineIndex? i<=this.finalLineIndex : true);
+    inRange(r){
+      return r.__rowNum__>=this.firstRow-1&&(this.endRow? this.endRow>=r.__rowNum__:true);
     },
     NoNullColums() {
       if (this.noNullColumns) return this.noNullColumns;
@@ -132,47 +89,28 @@ export default {
         var workbook = XLSX.read(data, { type: "array" });
         let sheetName = workbook.SheetNames[0];
         /* DO SOMETHING WITH workbook HERE bit*/
-        // console.log(workbook);
         let worksheet = workbook.Sheets[sheetName];
-        // console.log(XLSX.utils.sheet_to_json(worksheet));
-        app.masterJson = XLSX.utils.sheet_to_json(worksheet);
+        let headers = generateHeders('A:AZ');
+        // inject headers to row 1
+        // for(let i = 0; i<=headers.length;i++)
+        //   worksheet[headers[i]+'0']=app.getInjectColumnSheet(headers[i]);
+        app.masterJson = XLSX.utils.sheet_to_json(worksheet,{header: headers});
+        if(app.onRead)
+          app.onRead([... app.masterJson]);
+        app.getInfo();
       };
       reader.readAsArrayBuffer(f);
     },
-    getKeys() {
-      this.searchFinalLineIndex();
-      if (this.filterColumns) {
-        //searchKeys
-        this.dataKeys = this.masterJson
-          .map((row, i) => {
-            let keys = Object.keys(row)
-              .map((ck) => {
-                if (this.filterColumns.includes(row[ck]))
-                  return {
-                    fkey: row[ck],
-                    xkey: ck,
-                  };
-                return false;
-              })
-              .filter((d) => d);
-            if (keys.length === this.filterColumns.length)
-              return { row: i, keys };
-            return null;
-          })
-          .filter((d) => {
-            return d;
-          })[0];
-      }
-    },
     getInfo() {
+      if(this.masterJson===null)
+        return;
       this.excluded = [];
       this.info = this.masterJson
-        .map((val, i) => {
-          if (i > this.dataKeys.row && this.lessThatEnd(i)) {
+        .map((val) => {
+          if (this.inRange(val)) {
             let data = this.filterRowWithNoNullColumns(val);
             if (data)
               return {
-                row: i,
                 ...data,
               };
             else return false;
@@ -180,13 +118,16 @@ export default {
           return false;
         })
         .filter((d) => d);
+      this.$emit('on-filter',{data: [... this.info], excluded: [... this.excluded]});
     },
     filterRowWithNoNullColumns(row) {
+      if(this.filterColumns.length===0)
+        return true;
       var newData = {};
-      let haveKeys = this.dataKeys.keys.filter((k) => {
-        newData[k.fkey] = row[k.xkey];
-        if (this.NoNullColums().includes(k.fkey))
-          if (row[k.xkey] !== undefined) return true;
+      let haveKeys = this.filterColumns.filter((k) => {
+        newData[k] = row[k];
+        if (this.NoNullColums().includes(k))
+          if (row[k] !== undefined) return true;
           else return false;
         return false;
       });
@@ -200,8 +141,9 @@ export default {
       this.file = null;
       this.masterJson = null;
       this.info = null;
+      if(this.onRead)
       this.onRead(null);
-      this.onFilter(null);
+      this.$emit('on-filter',{data: [... this.info], excluded: [... this.excluded]})
     },
     beforeUpload(file) {
       this.file = file;
@@ -220,7 +162,15 @@ export default {
       this.info = null;
       this.masterJson = null;
       this.excluded = null;
+      this.$emit('on-filter',{data: [... this.info], excluded: [... this.excluded]})
     },
+    getInjectColumnSheet(val){
+      return {
+        v: val,
+        t: 's',
+        w: val,
+      }
+    }
   },
 };
 </script>

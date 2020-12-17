@@ -1,13 +1,35 @@
 <template>
-  <div>
+  <div class="com-planillas-container">
     <el-tabs type="card" tab-position="top">
       <el-tab-pane>
-        <span slot="label"
-          ><i class="el-icon-document"></i>{{ xlsx1.title }}</span>
-        <FilterExcelColumns
-          :default-columns="xlsx1.filterColumns"
-          :default-no-null-columns="xlsx1.noNullColumns"
-          @change="onFilterD1"
+        <span slot="label"><i class="el-icon-document"></i>{{ xlsx1.title }}</span>
+        <br>
+        <br>
+        <el-collapse>
+          <el-collapse-item v-if="xlsx1.info">
+            <template slot="title">
+              <el-badge :value="xlsx1.info.length" :is-dot="false" :hidden="false" type="success">
+                <el-link type="success" :underline="false">Registros Recuperados</el-link>
+              </el-badge>
+            </template>
+            <ArrayPaginate
+              :list="xlsx1.info"
+              filterable
+            >
+              <template slot-scope="row">
+                <ShowObject
+                  :object="row.item"
+                  type="success"
+                  show-all
+                  show-area-info
+                />
+              </template>
+            </ArrayPaginate>
+          </el-collapse-item>
+        </el-collapse>
+        
+        <LoadCoopPlanillas
+          @on-filter="onFilterD1"
         />
       </el-tab-pane>
       <el-tab-pane>
@@ -16,16 +38,28 @@
         <FilterExcelColumns
           :default-columns="xlsx2.filterColumns"
           :default-no-null-columns="xlsx2.noNullColumns"
-          @change="onFilterD2"
+          @on-filter="onFilterD2"
+          :defaultfirst-row="xlsx2.firstRow"
         />
       </el-tab-pane>
       <el-tab-pane>
-        <span slot="label"><i class="el-icon-document"></i>Comparacion de datos</span>
+        <span slot="label"><i class="el-icon-document"></i>Emparejacion de datos</span>
         <el-row v-if="xlsx1.info && xlsx2.info" :gutter="20" type="flex" justify="space-around">
           <el-col :span="22" :offset="0">
             <match-info
               :arr1="xlsx1.info"
               :arr2="xlsx2.info"
+              @on-match="onGenerateMatchList"
+            />
+          </el-col>
+        </el-row>
+      </el-tab-pane>
+      <el-tab-pane>
+        <span slot="label"><i class="el-icon-document"></i>Comparacion de datos</span>
+        <el-row :gutter="20" type="flex" justify="space-around">
+          <el-col :span="22" :offset="0">
+            <ValidateData 
+              :match-list="matchList"        
             />
           </el-col>
         </el-row>
@@ -35,48 +69,57 @@
 </template>
 
 <script>
+import ShowObject from '@/components/ShowObject';
+import ArrayPaginate from '@/components/ArrayPaginate';
+import LoadCoopPlanillas from './CompPlanillasComponents/LoadCoopPlanillas';
 import FilterExcelColumns from "@/components/FilterExcelColumns";
-//import CompareData from '@/components/compareData';
 import MatchInfo from '../components/matchInfo.vue';
+import ValidateData from './../components/ValidateData';
 export default {
   name: "CompararPlanillas",
   components: {
     FilterExcelColumns,
-    //CompareData,
     MatchInfo,
+    ValidateData,
+    LoadCoopPlanillas,
+    ShowObject,
+    ArrayPaginate,
   },
   data(){
     return {
       xlsx1: {
-        title: "Seleccione Palanilla De Descuento Permanente Ajustado",
-        filterColumns: [
-          'Nº SOCIO',
-          'CEDULA DE IDENTIDAD',
-          'APELLIOS PATERNO',
-          'APELLIDOS MATERNO ',
-          'NOMBRES ',
-          'TOTAL GENERAL'
-        ],
-        noNullColumns: [
-          'NOMBRES ',
-          'TOTAL GENERAL',
-        ],
+        title: "Palanillas De Descuento Cooperativa",
+        
         info: null,
       },
       xlsx2: {
         title: "Seleccione Nomina de Personal UATF",
         filterColumns: [
-          'CI',
-          'APELLIDOS Y NOMBRES',
-          'MONTO',
+          {
+            oldKey: 'E',
+            newKey: 'ITEM',
+          },
+          {
+            oldKey: 'F',
+            newKey: 'CI',
+          },
+          {
+            oldKey: 'G',
+            newKey: 'APELLIDOS Y NOMBRES'
+          },
+          {
+            oldKey: 'L',
+            newKey: 'MONTO'
+          },
         ],
         noNullColumns: [
-          'APELLIDOS Y NOMBRES',
-          'MONTO',
+          'G',
+          'L',
         ],
-        jsonData: null,
+        firstRow: 4,
         info: null,
       },
+      matchList:[],
     };
   },
   methods: {
@@ -86,9 +129,16 @@ export default {
     onFilterD2(data){
       this.xlsx2.info = data;
     },
+    onGenerateMatchList(matchList){
+      this.matchList = matchList;
+    }
   },
 };
 </script>
 
-<style>
+<style lang="css" scoped>
+.com-planillas-container{
+  margin: 5px;
+  padding: 10px;
+}
 </style>

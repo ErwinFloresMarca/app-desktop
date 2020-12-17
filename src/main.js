@@ -5,13 +5,11 @@ import Vuex from 'vuex'
 import ElementUI from 'element-ui'
 import locale from 'element-ui/lib/locale/lang/es'
 import 'element-ui/lib/theme-chalk/index.css'
-import ElSearchTablePagination from 'el-search-table-pagination'
 
 // Use
 Vue.use(ElementUI,{ locale });
 Vue.use(VueRouter);
 Vue.use(Vuex)
-Vue.use(ElSearchTablePagination)
 // component
 import App from './App.vue'
 import router from './router'

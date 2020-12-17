@@ -20,7 +20,6 @@
         </el-select>
       </el-col>
     </el-row>
-    
     <br>
     <array-paginate
       :list="list"
