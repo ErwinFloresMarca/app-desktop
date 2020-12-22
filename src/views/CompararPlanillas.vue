@@ -40,6 +40,7 @@
           :default-no-null-columns="xlsx2.noNullColumns"
           @on-filter="onFilterD2"
           :defaultfirst-row="xlsx2.firstRow"
+          :default-unique-columns="xlsx2.uniqueColumns"
         />
       </el-tab-pane>
       <el-tab-pane>
@@ -94,28 +95,12 @@ export default {
       },
       xlsx2: {
         title: "Seleccione Nomina de Personal UATF",
-        filterColumns: [
-          {
-            oldKey: 'E',
-            newKey: 'ITEM',
-          },
-          {
-            oldKey: 'F',
-            newKey: 'CI',
-          },
-          {
-            oldKey: 'G',
-            newKey: 'APELLIDOS Y NOMBRES'
-          },
-          {
-            oldKey: 'L',
-            newKey: 'MONTO'
-          },
-        ],
+        filterColumns: [{"oldKey":"B","newKey":"CARRERA"},{"oldKey":"C","newKey":"TIPO"},{"oldKey":"D","newKey":"COD PRG"},{"oldKey":"E","newKey":"ITEM"},{"oldKey":"F","newKey":"CI"},{"oldKey":"G","newKey":"APELLIDOS Y NOMBRES"},{"oldKey":"H","newKey":"CARGO"},{"oldKey":"I","newKey":"DEDI"},{"oldKey":"J","newKey":"TIPO CARGO"},{"oldKey":"K","newKey":"N. DOC"},{"oldKey":"L","newKey":"MONTO"}],
         noNullColumns: [
           'G',
           'L',
         ],
+        uniqueColumns: ['CI'],
         firstRow: 4,
         info: null,
       },

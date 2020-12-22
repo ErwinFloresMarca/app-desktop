@@ -44,6 +44,14 @@
                 </el-select>
                 <h4><span>Numero de fila del primer registro</span></h4>
                 <el-input v-model="firstRow" placeholder="numero de fila del primer registro valido" size="normal" clearable />
+                <h4><span>Buscar Registros Repetidos por Columna</span></h4>
+                <el-select v-model="uniqueColumns" placeholder="Seleccione las columnas que no deben repetirse." multiple filterable clearable @change="searchRepeatRegisters">
+                  <el-option v-for="item in filterColumns"
+                    :key="item.oldKey"
+                    :label="item.newKey"
+                    :value="item.oldKey">
+                  </el-option>
+                </el-select>
               </el-col>
             </el-row>
           </el-collapse-item>
@@ -64,6 +72,7 @@
                   show-all
                   show-area-info
                 />
+                <el-button type="danger" size="mini" @click="onDeleted(row.index,row.item)" icon="el-icon-delete" round>Eliminar de Lista</el-button>
               </template>
             </ArrayPaginate>
           </el-collapse-item>
@@ -79,12 +88,46 @@
             >
               <template slot-scope="row">
                 <showobject
-                  :title="'No tiene datos'"
                   :object="row.item"
                   show-all
                   type="warning"
                   show-area-info
                 />
+                <el-button type="success" size="mini" @click="onAdded(row.index,row.item)" icon="el-icon-check" round>Añadir a Lista</el-button>
+              </template>
+            </ArrayPaginate>
+          </el-collapse-item>
+          <el-collapse-item v-if="repeatList.length>0" title="Registros Repetidos">
+            <template slot="title">
+              <el-badge :value="repeatList.length" :is-dot="false" :hidden="false" type="danger">
+                <el-link type="danger" :underline="false">Registros Repetidos</el-link>
+              </el-badge>
+            </template>
+            <ArrayPaginate
+              :list="repeatList"
+              filterable
+            >
+              <template slot-scope="row">
+                <el-row :gutter="20">
+                  <el-col :span="12" :offset="0">
+                    <showobject
+                      :object="row.item.e1"
+                      :principal-keys="uniqueColumns"
+                      type="error"
+                      show-area-info
+                    />
+                    <el-button type="success" size="mini" @click="onRepeatUse(row.item,1)" icon="el-icon-check" round>Usar Este</el-button>
+                  </el-col>
+                  <el-col :span="12" :offset="0">
+                    <showobject
+                      :object="row.item.e2"
+                      :principal-keys="uniqueColumns"
+                      type="error"
+                      show-area-info
+                    />
+                    <el-button type="success" size="mini" @click="onRepeatUse(row.item,2)" icon="el-icon-check" round>Usar Este</el-button>
+                  </el-col>
+                </el-row>
               </template>
             </ArrayPaginate>
           </el-collapse-item>
@@ -120,7 +163,11 @@ export default {
     defaultfirstRow: {
       type: Number,
       default: 1,
-    }
+    },
+    defaultUniqueColumns: {
+      type: Array,
+      default: null,
+    },
   },
   data() {
     return {
@@ -132,6 +179,8 @@ export default {
       jsonData: null,
       info: null,
       excluded: null,
+      uniqueColumns: null,
+      repeatList: [],
     };
   },
   watch: {
@@ -145,6 +194,7 @@ export default {
     this.filterColumnsList = [... this.defaultColumns];
     this.fcook = this.filterColumns.map(o => o.oldKey);
     this.firstRow = this.defaultfirstRow;
+    this.uniqueColumns = this.defaultUniqueColumns;
   },
   methods: {
     getFilterColumns() {
@@ -165,17 +215,35 @@ export default {
     },
     onRead(Json) {
       this.jsonData = Json;
-      this.getFilterColumns();
+      if(this.jsonData)
+        this.getFilterColumns();
     },
     onFilter({data, excluded}) {
-      this.info = data.map(o => {
-        return changeAndOrderKeys(o,[...this.filterColumns]);
-      });
-      this.excluded = excluded.map(o => {
-        return changeAndOrderKeys(o,this.filterColumns);
-      });
-      this.$emit('change', data);
-      this.$emit("on-filter", this.info);
+      if(data&&excluded){
+        this.info = data.map(o => {
+          return changeAndOrderKeys(o,[...this.filterColumns]);
+        });
+        this.excluded = excluded.map(o => {
+          return changeAndOrderKeys(o,this.filterColumns);
+        });
+        this.searchRepeatRegisters();
+      }
+      else{
+        this.info = null;
+        this.excluded = null;
+        this.repeatList =[];
+      }
+      this.emitChanges();
+    },
+    onAdded(index,item){
+      this.excluded=this.excluded.filter((e,i) => i!==index);
+      this.info.push(item);
+      this.emitChanges();
+    },
+    onDeleted(index,item){
+      this.info=this.info.filter((e,i) => i!==index);
+      this.excluded.push(item);
+      this.emitChanges()
     },
     onChangeFilterColumns(list){
       this.filterColumns=list;
@@ -183,6 +251,39 @@ export default {
     onChangeFilterColumnsList(list){
       this.filterColumnsList = list;
     },
+    searchRepeatRegisters(){
+      if(!this.uniqueColumns)
+        return;
+      var rrlist = [];
+      var checkIndexs=[];
+      this.info.forEach((e1,i) => {
+        this.info.forEach((e2,j)=> {
+          if(i!==j){
+            if(this.uniqueColumns.reduce( (a,c) =>{
+              return (a | e1[c]===e2[c]);
+            },false)&& !checkIndexs.includes(i)){
+              rrlist.push({i1:i,e1:e1,i2:j,e2:e2});
+              checkIndexs.push(i);
+              checkIndexs.push(j);
+            }
+          }
+        });
+      });
+      this.repeatList = rrlist;
+    },
+    onRepeatUse(itemRepeat,use){
+      if(use=== 1){
+        this.onDeleted(itemRepeat.i2,itemRepeat.e2)
+      }
+      else if( use === 2){
+        this.onDeleted(itemRepeat.i1,itemRepeat.e1)
+      }
+    },
+    emitChanges(){
+      this.searchRepeatRegisters();
+      this.$emit('change', this.info);
+      this.$emit("on-filter", this.info);
+    }
   },
 };
 </script>

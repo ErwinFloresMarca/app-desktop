@@ -55,6 +55,18 @@
             </el-col>
           </el-row>
         </array-paginate>
+        <GenerateAdvancedReport
+            :list="matchList"
+            :extract-sub-objects="['d1','d2']"
+          />
+        <InyectToExcel
+          :list="genMLjoinObj"
+          :first-row="4"
+          ik="ITEM"
+          tk="TOTAL GENERAL"
+          ic="E"
+          tc="L"
+        />
       </el-collapse-item>
       <el-collapse-item v-if="possibleMatchList.length>0">
         <span slot="title">
@@ -90,11 +102,14 @@
 </template>
 
 <script>
+import { extractAtribSubObject } from '@/utils/objectMethods';
+import GenerateAdvancedReport from './GenerateAdvancedReport';
 import Comp from '@/utils/compareData';
 import ArrayPaginate from './ArrayPaginate';
 import ShowObject from './ShowObject';
 import NoMatchedLists from './NoMatchLists';
 import PossibleMatchList from './PossibleMatchList';
+import InyectToExcel from './InyectToExcel';
 export default {
   name: 'MatchInfo',
   components: {
@@ -102,6 +117,8 @@ export default {
     ShowObject,
     NoMatchedLists,
     PossibleMatchList,
+    GenerateAdvancedReport,
+    InyectToExcel,
   },
   props: {
     arr1:{
@@ -139,6 +156,14 @@ export default {
       l1CompareKeys: [],
       l2CompareKeys: [],
     };
+  },
+  computed: {
+    genMLjoinObj(){
+      if(this.matchList)
+        return this.matchList.map(o => extractAtribSubObject(o,['d1','d2']))
+      else
+        return [];
+    },
   },
   watch: {
     arr1(){

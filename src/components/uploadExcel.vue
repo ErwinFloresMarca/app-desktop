@@ -69,7 +69,8 @@ export default {
     file(newValue) {
       if (newValue) {
         this.excelToJson(newValue);
-      } else this.deleteData();
+      }
+      else this.deleteData();
     },
   },
   methods: {
@@ -88,6 +89,7 @@ export default {
         var data = new Uint8Array(e.target.result);
         var workbook = XLSX.read(data, { type: "array" });
         let sheetName = workbook.SheetNames[0];
+        app.$emit('on-read-worbook',workbook);
         /* DO SOMETHING WITH workbook HERE bit*/
         let worksheet = workbook.Sheets[sheetName];
         let headers = generateHeders('A:AZ');
@@ -142,8 +144,8 @@ export default {
       this.masterJson = null;
       this.info = null;
       if(this.onRead)
-      this.onRead(null);
-      this.$emit('on-filter',{data: [... this.info], excluded: [... this.excluded]})
+        this.onRead(null);
+      this.$emit('on-filter',{data: null, excluded: null})
     },
     beforeUpload(file) {
       this.file = file;
@@ -162,7 +164,7 @@ export default {
       this.info = null;
       this.masterJson = null;
       this.excluded = null;
-      this.$emit('on-filter',{data: [... this.info], excluded: [... this.excluded]})
+      this.$emit('on-filter',{data: null, excluded: null})
     },
     getInjectColumnSheet(val){
       return {

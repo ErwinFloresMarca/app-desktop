@@ -7,6 +7,7 @@
         :default-no-null-columns="dp.noNC"
         @on-filter="onFilterDP"
         :defaultfirst-row="dp.firstRow"
+        :default-unique-columns="['Nro. SOCIO']"
       />
     </el-collapse-item>
     <el-collapse-item
@@ -16,6 +17,7 @@
         :default-no-null-columns="np.noNC"
         @on-filter="onFilterNP"
         :defaultfirst-row="np.firstRow"
+        :default-unique-columns="['Nro. SOCIO']"
       />
     </el-collapse-item>
     <el-collapse-item
@@ -25,6 +27,7 @@
         :default-no-null-columns="j.noNC"
         @on-filter="onFilterJ"
         :defaultfirst-row="j.firstRow"
+        :default-unique-columns="['Nro. SOCIO']"
       />
     </el-collapse-item>
     <el-collapse-item
@@ -34,6 +37,7 @@
         :default-no-null-columns="g.noNC"
         @on-filter="onFilterG"
         :defaultfirst-row="g.firstRow"
+        :default-unique-columns="['Nro. SOCIO']"
       />
     </el-collapse-item>
   </el-collapse>
@@ -72,11 +76,11 @@ export default {
             newKey: 'NOMBRES'
           },
           {
-            oldKey: 'AG',
+            oldKey: 'AF',
             newKey: 'TOTAL GENERAL'
           },
         ],
-        noNC: ['F','AG'],
+        noNC: ['F','AF'],
         firstRow: 10,
         info: [],
       },
@@ -88,7 +92,7 @@ export default {
             newKey: 'Nro. SOCIO'
           },
           {
-            oldKey: 'AZ',
+            oldKey: 'C',
             newKey: 'CEDULA DE IDENTIDAD',
           },
           {
@@ -152,28 +156,28 @@ export default {
             newKey: 'Nro. SOCIO'
           },
           {
-            oldKey: 'AZ',
+            oldKey: 'C',
             newKey: 'CEDULA DE IDENTIDAD',
           },
           {
-            oldKey: 'C',
+            oldKey: 'D',
             newKey: 'APELLIDO PATERNO'
           },
           {
-            oldKey: 'D',
+            oldKey: 'E',
             newKey: 'APELLIDO MATERNO'
           },
           {
-            oldKey: 'E',
+            oldKey: 'F',
             newKey: 'NOMBRES'
           },
           {
-            oldKey: 'M',
+            oldKey: 'N',
             newKey: 'TOTAL GENERAL'
           },
         ],
         firstRow: 12,
-        noNC: ['E','M'],
+        noNC: ['F','N'],
         info: [],
       },
     };

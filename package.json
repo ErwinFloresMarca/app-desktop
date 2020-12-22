@@ -1,7 +1,15 @@
 {
-  "name": "app-escritorio",
-  "version": "0.1.0",
+  "name": "planillas-cooperativa-18-de-julio",
+  "version": "1.0.0",
   "private": true,
+  "author": "Erwin Flores <ramiromarca6@gmail.com>",
+  "description": "this project is a project for the directed work of the university",
+  "license": "MIT",
+  "build": {
+    "win": {
+      "icon": "../icon/favicon.ico"
+    }
+  },
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
