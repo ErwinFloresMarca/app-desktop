@@ -43,7 +43,7 @@
           </el-popover>
           <el-popover
             placement="top"
-            title="Confirmar"
+            title="Desechar"
             trigger="hover"
           >
             <el-button slot="reference" icon="el-icon-close" @click="onDelete(row)" type="danger" size="small" circle></el-button>
@@ -85,9 +85,21 @@ export default {
   },
   methods: {
     onConfirm(row){
+      this.$message({
+        message: 'Registro confirmado!!!',
+        type: 'success',
+        showClose: true,
+        duration: 5000,
+      });
       this.$emit('on-confirm',{... row});
     },
     onDelete(row){
+      this.$message({
+        message: 'Registro desechado!!!',
+        type: 'warning',
+        showClose: true,
+        duration: 5000,
+      });
       this.$emit('on-delete',{... row});
     }
   },

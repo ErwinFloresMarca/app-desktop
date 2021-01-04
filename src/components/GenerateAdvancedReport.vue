@@ -129,7 +129,8 @@ export default {
         export_json_to_excel({
           header: headers,
           data: dataMatriz,
-          filename: this.fileName
+          filename: this.fileName,
+          bookType: 'xls',
         });
         this.showDialog = false;
         this.$message({

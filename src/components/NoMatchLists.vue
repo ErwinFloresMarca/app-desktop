@@ -119,6 +119,12 @@ export default {
   },
   methods:{
     onMatch(){
+      this.$message({
+        message: 'Registro emparejado!!!',
+        type: 'success',
+        showClose: true,
+        duration: 5000,
+      });
       // emitir evento
       this.$emit('on-matched',{d1:this.l1select,d2:this.l2select});
       this.l1select = null;

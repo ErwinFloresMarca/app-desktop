@@ -239,11 +239,23 @@ export default {
       this.excluded=this.excluded.filter((e,i) => i!==index);
       this.info.push(item);
       this.emitChanges();
+      this.$message({
+        message: 'Registro añadido!!!',
+        type: 'success',
+        showClose: true,
+        duration: 5000,
+      });
     },
     onDeleted(index,item){
       this.info=this.info.filter((e,i) => i!==index);
       this.excluded.push(item);
-      this.emitChanges()
+      this.emitChanges();
+      this.$message({
+        message: 'Registro Eliminado!!!',
+        type: 'warning',
+        showClose: true,
+        duration: 5000,
+      });
     },
     onChangeFilterColumns(list){
       this.filterColumns=list;
